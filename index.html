@@ -12,7 +12,7 @@
 <body>
     <script src="lib/vue.js"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="lib/d3.min.js"></script>
+    <!-- <script src="lib/d3.min.js"></script> -->
     <script src="lib/plottable.min.js"></script>
     <script src="lib/sugar.min.js"></script>
     <script>
@@ -39,12 +39,12 @@
                 <div>
                     Select target feature
                     <select onchange="selectTarget()" id="selectTarget">
-                      <option v-for="col in data.columns" :value="col">{{col}}</option>
+                      <option v-for="col in columns" :value="col">{{col}}</option>
                     </select>
                 </div>
 
                 <div class="feature-list">
-                    <div v-for="col in data.columns">{{col}}<span>{{dataInfo[col]}}</span></div>
+                    <div v-for="col in columns">{{col}}<span>{{dataInfo[col]}}</span></div>
                 </div>
                 <button class="btn" v-on:click="explore('comparison')"> Compare 2 variables </button>
                 <button class="btn" v-on:click="explore('univariate')"> Univariate distribution </button>
@@ -58,10 +58,10 @@
                 <option v-for="feature in numericalFeatures" :value="feature">{{feature}}</option>
               </select>
               <button v-on:click="compareFeatures"> Compare</button>
-              <div> Person correlation : {{comparison.pearson}} </div>  
+              <div> Person correlation : {{comparison.pearson}} </div>
 
 
-                ScatterPlot
+              <svg width="100%" height="100%" id="scatter" class="plottable" style="overflow: visible;"></svg>
             </div>
             <div class="univariate" self="size-x1" v-show="show.univariate">
                 Histograms

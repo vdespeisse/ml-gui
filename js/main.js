@@ -9,25 +9,32 @@ var vm = new Vue({
     },
     comparison : {
       pearson : 0,
-    }
+    },
+    plot : null,
 
 
   },
   computed: {
+    columns() {
+      var vm = this
+      if (vm.data.length ===0) return
+      return Object.keys(vm.data[0])
+    },
     featureData() {
       var vm = this
       var res = {}
-      if (!vm.data.columns) return
-      vm.data.columns.map(col => {
+      if (!vm.columns) return
+      vm.columns.map(col => {
         res[col] = parseColumn(vm.data.map(d => d[col]))
+        if (res[col].type === "int" || res[col].type === "float") vm.data.map(d => {d[col] = + d[col]; return d})
       })
       return res
     },
     dataInfo(){
       var vm = this
       var text = {}
-      if (!vm.data.columns) return
-      vm.data.columns.map(col => {
+      if (!vm.columns) return
+      vm.columns.map(col => {
         var featureData = vm.featureData[col]
         if (featureData.type === "float" || featureData.type === "int")  text[col] = " Type : " + featureData.type + " Range : [" + featureData.range + "] Mean : " + featureData.mean + " Median : " + featureData.median
         else if (featureData.type === "category") text[col] = " Type : " + featureData.type + " Number of cat : " + featureData.categories.length
@@ -49,8 +56,8 @@ var vm = new Vue({
     // ranges() {
     //   var vm = this
     //   var result = {}
-    //   if (!vm.data.columns) return
-    //   vm.data.columns.map(col => {
+    //   if (!vm.columns) return
+    //   vm.columns.map(col => {
     //     var array = vm.data.map(d => parseInt(d[col]))
     //     result[col] = [d3.min(array),d3.max(array)]
     //   })
@@ -62,6 +69,8 @@ var vm = new Vue({
     explore : function(str){
       var vm = this
       Object.keys(vm.show).map(k => vm.show[k] = false)
+      if (vm.comparisonTable) vm.comparisonTable.destroy()
+
       vm.show[str] = true
     },
     compareFeatures : function(){
@@ -71,7 +80,26 @@ var vm = new Vue({
 
       var data = vm.data.map(d => ({x : d[feature1], y : d[feature2], target : d[vm.targetFeature]}))
       vm.comparison["pearson"] = pearson([data.map(d=>+d.x),data.map(d=>+d.y)],0,1)
-      window.d = data
+      var ds = new Plottable.Dataset(data)
+      var xScale = new Plottable.Scales.Linear().domain(vm.featureData[feature1].range);
+      var yScale = new Plottable.Scales.Linear().domain(vm.featureData[feature2].range);
+      var colorScale = new Plottable.Scales.Color()
+      colorScale.domain(vm.featureData[vm.targetFeature].categories).range(["blue","red","green","black"])
+      var xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
+      var yAxis = new Plottable.Axes.Numeric(yScale, "left");
+      var xLabel = new Plottable.Components.AxisLabel(feature1, "0");
+      var yLabel = new Plottable.Components.AxisLabel(feature2, "270");
+      if (vm.comparisonTable) vm.comparisonTable.destroy()
+      plot = new Plottable.Plots.Scatter();
+      plot.addDataset(ds);
+      plot.x(d => d.x, xScale)
+          .y(d => d.y, yScale)
+          .attr("fill", d => d.target, colorScale)
+
+      vm.comparisonTable = new Plottable.Components.Table([[yLabel, yAxis, plot],
+                                            [null, null, xAxis],
+                                            [null, null, xLabel]]);
+      vm.comparisonTable.renderTo("svg#scatter")
 
 
     }
@@ -96,17 +124,16 @@ function upload() {
 
     var reader = new FileReader();
 
-    // Closure to capture the file information.
     reader.onload = (function(theFile) {
       return function(e) {
-        // Render thumbnail.
         var csv = e.target.result
-        vm.data = d3.csvParse(csv)
+
+        data = d3.csv.parse(csv)
+        vm.data = data
 
       };
     })(file);
 
-    // Read in the image file as a data URL.
     reader.readAsText(file);
 
 }
