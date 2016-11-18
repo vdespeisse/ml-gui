@@ -7,6 +7,10 @@ var vm = new Vue({
       comparison: false,
       univariate: false
     },
+    comparison : {
+      pearson : 0,
+    }
+
 
   },
   computed: {
@@ -36,6 +40,11 @@ var vm = new Vue({
       var vm = this
       if (!vm.featureData) return
       return Object.keys(vm.featureData).filter(k => (vm.featureData[k].type !== "index" && k!== vm.targetFeature))
+    },
+    numericalFeatures() {
+      var vm = this
+      if (!vm.featureData) return
+      return vm.features.filter(f => (vm.featureData[f].type === "float" ||vm.featureData[f].type === "int"))
     }
     // ranges() {
     //   var vm = this
@@ -54,6 +63,17 @@ var vm = new Vue({
       var vm = this
       Object.keys(vm.show).map(k => vm.show[k] = false)
       vm.show[str] = true
+    },
+    compareFeatures : function(){
+      var vm = this
+      var feature1 = document.querySelector("#feature1").value
+      var feature2 = document.querySelector("#feature2").value
+
+      var data = vm.data.map(d => ({x : d[feature1], y : d[feature2], target : d[vm.targetFeature]}))
+      vm.comparison["pearson"] = pearson([data.map(d=>+d.x),data.map(d=>+d.y)],0,1)
+      window.d = data
+
+
     }
 
 

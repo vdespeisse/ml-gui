@@ -35,7 +35,7 @@
             <div self="size-1of2">
                 <input type="file" id="fileButton"></input>
 
-                <button onclick="upload()">go</button>
+                <button onclick="upload()">Upload</button>
                 <div>
                     Select target feature
                     <select onchange="selectTarget()" id="selectTarget">
@@ -52,12 +52,13 @@
             </div>
             <div class="comparison" self="size-x1" v-show="show.comparison">
               <select id="feature1">
-                <option v-for="feature in features" :value="feature">{{feature}}</option>
+                <option v-for="feature in numericalFeatures" :value="feature">{{feature}}</option>
               </select>
               <select id="feature2">
-                <option v-for="feature in features" :value="feature">{{feature}}</option>
+                <option v-for="feature in numericalFeatures" :value="feature">{{feature}}</option>
               </select>
-              <button> go</button>
+              <button v-on:click="compareFeatures"> Compare</button>
+              <div> Person correlation : {{comparison.pearson}} </div>  
 
 
                 ScatterPlot
@@ -68,6 +69,7 @@
         </div>
     </section>
     <script src="js/parse-data.js"></script>
+    <script src="js/stat.js"></script>
     <script src="js/main.js"></script>
 
 </body>
